@@ -1,5 +1,5 @@
 /*
-   Simple test-program of debugger_present() from wcdbg_utils.
+   Simple test-program of debugger_present() from dbgtools.
 
    version 1.0, october, 2013
 
