@@ -1,16 +1,16 @@
 # About:
 Platform independent wrapping of "nice to have" debug functions.
 
-callstack.h - implements capturing of callstack/backtrace + translation of captured symbols into name, file, line and offset.
-debugger.h  - implements debugger_present to check if a debugger is attached to the process.
+* callstack.h - implements capturing of callstack/backtrace + translation of captured symbols into name, file, line and offset.
+* debugger.h  - implements debugger_present to check if a debugger is attached to the process.
 
 # Design:
 The files are designed to be able to be used by them self, only header and src should be needed by the user and all files
 should work by them self and compile with all common compilers without to many specific fixes.
 
 # Notes:
-MSVC      - callstack_symbols() require linking against Dbghelp.lib.
-GCC/Clang - callstack_symbols() require -rdynamic to be sepcified as link-flag to get valid symbols.
+* MSVC      - callstack_symbols() require linking against Dbghelp.lib.
+* GCC/Clang - callstack_symbols() require -rdynamic to be sepcified as link-flag to get valid symbols.
 
 # Licence:
 
