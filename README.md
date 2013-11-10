@@ -1,6 +1,7 @@
 # About:
 Platform independent wrapping of "nice to have" debug functions.
 
+* assert.h    - implements a replacement for the standard assert() macro supporting callback at assert, and error-message with printf-format.
 * callstack.h - implements capturing of callstack/backtrace + translation of captured symbols into name, file, line and offset.
 * debugger.h  - implements debugger_present to check if a debugger is attached to the process.
 

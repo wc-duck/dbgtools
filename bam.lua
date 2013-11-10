@@ -40,6 +40,8 @@ settings.cc.Output = output_func
 settings.lib.Output = output_func
 settings.link.Output = output_func
 
+settings.cc.defines:Add("DBG_TOOLS_ASSERT_ENABLE")
+
 if family ~= "windows" then
 	settings.cc.flags:Add( "-Wconversion", "-Wextra", "-Wall", "-Werror", "-Wstrict-aliasing=2" )
 	settings.link.flags:Add( '-rdynamic' )
@@ -53,7 +55,9 @@ settings.cc.includes:Add( 'include' )
 
 local debugger_obj  = Compile( settings, 'src/debugger.cpp' )
 local callstack_obj = Compile( settings, 'src/callstack.cpp' )
+local assert_obj    = Compile( settings, 'src/assert.cpp' )
 
-local test_debugger = Link( settings, 'test_debugger',      debugger_obj,  Compile( settings, 'test/test_debugger_present.c' ) )
-local test_debugger = Link( settings, 'test_callstack',     callstack_obj, Compile( settings, 'test/test_callstack.c' ) )
-local test_debugger = Link( settings, 'test_callstack_cpp', callstack_obj, Compile( settings, 'test/test_callstack_cpp.cpp' ) )
+Link( settings, 'test_debugger',      debugger_obj,  Compile( settings, 'test/test_debugger_present.c' ) )
+Link( settings, 'test_callstack',     callstack_obj, Compile( settings, 'test/test_callstack.c' ) )
+Link( settings, 'test_callstack_cpp', callstack_obj, Compile( settings, 'test/test_callstack_cpp.cpp' ) )
+Link( settings, 'test_assert',        assert_obj,    Compile( settings, 'test/test_assert.cpp' ) )
