@@ -61,6 +61,9 @@
 
 #elif defined( __APPLE__ )
 
+#include <sys/sysctl.h>
+#include <unistd.h>
+
 	int debugger_present()
 	{
 		int mib[4];
@@ -76,7 +79,7 @@
 		size = sizeof(info);
 		sysctl( mib, sizeof(mib) / sizeof(*mib), &info, &size, NULL, 0) ;
 
-		return info.kp_proc.p_flag & P_TRACED) != 0;
+		return (info.kp_proc.p_flag & P_TRACED) != 0;
 	}
 #else
 
