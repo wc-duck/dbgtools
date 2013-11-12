@@ -59,40 +59,6 @@ int callstack( int skip_frames, void** addresses, int num_addresses );
  */
 int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_addresses, char* memory, int mem_size );
 
-#if defined( __unix__ )
-
-	#include <string.h>
-	#include <execinfo.h>
-
-	extern inline __attribute__((always_inline)) int callstack( int skip_frames, void** addresses, int num_addresses )
-	{
-		// inlined to not return address of callstack function.
-		void* trace[256];
-		int fetched = backtrace( trace, num_addresses + skip_frames ) - skip_frames;
-		memcpy( addresses, trace + skip_frames, (size_t)fetched * sizeof(void*) );
-		return fetched;
-	}
-
-#elif defined( _MSC_VER )
-
-	#define WIN32_LEAN_AND_MEAN
-	#define NOMINMAX
-	#include <Windows.h>
-
-	__forceinline int callstack( int skip_frames, void** addresses, int num_addresses )
-	{
-		return RtlCaptureStackBackTrace( skip_frames, num_addresses, addresses, 0 );
-	}
-
-#else
-
-	inline int callstack( int skip_frames, void** addresses, int num_addresses )
-	{
-		return 0;
-	}
-
-#endif
-
 #ifdef __cplusplus
 }
 #endif  // __cplusplus

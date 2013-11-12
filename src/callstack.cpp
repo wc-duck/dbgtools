@@ -27,6 +27,20 @@
 #include <dbgtools/callstack.h>
 
 #include <string.h>
+#if defined( __unix__ )
+	#include <execinfo.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <unistd.h>
+
+	#include <cxxabi.h>
+
+#elif defined( _MSC_VER )
+	#define WIN32_LEAN_AND_MEAN
+	#define NOMINMAX
+	#include <Windows.h>
+	#include <Dbghelp.h>
+#endif
 
 typedef struct
 {
@@ -48,18 +62,21 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 	return res;
 }
 
+int callstack( int skip_frames, void** addresses, int num_addresses )
+{
+	++skip_frames;
 #if defined( __unix__ )
-	#include <execinfo.h>
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <unistd.h>
-
-	#include <cxxabi.h>
-
+	void* trace[256];
+	int fetched = backtrace( trace, num_addresses + skip_frames ) - skip_frames;
+	memcpy( addresses, trace + skip_frames, (size_t)fetched * sizeof(void*) );
+	return fetched;
 #elif defined( _MSC_VER )
-	#include <Windows.h>
-	#include <Dbghelp.h>
+	return RtlCaptureStackBackTrace( skip_frames, num_addresses, addresses, 0 );
+#else
+	(void)skip_frame; (void)addresses; (void)num_addresses;
+	return 0;
 #endif
+}
 
 int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_addresses, char* memory, int mem_size )
 {
