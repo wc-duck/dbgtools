@@ -62,13 +62,13 @@ void assert_register_callback( assert_callback_t callback, void* user_data );
  * @example ASSERT( a == 1, "a was not == to 1" ); // trigger if a != 1 and reports "a was not == to 1"
  * @example ASSERT( a == 1, "a == %d", a ); // trigger if a != 1 and reports "a == 1337" if a is 1337 that is!
  */
-#define ASSERT(cond, ...) do { (void)sizeof(cond); } while(0)
+#define ASSERT(cond, ...) ((void)sizeof( cond ))
 
 /**
  * macro that "asserts" that a condition is true, if not it breaks into the debugger.
  * @note if ASSERT_ENABLE is not defined it expands to only the condition.
  */
-#define VERIFY(cond, ...) do { (cond); } while(0)
+#define VERIFY(cond, ...) ((void)(cond))
 
 /**
  * macro inserting a breakpoint into the code that breaks into the debugger on most platforms.
@@ -102,10 +102,10 @@ assert_action assert_call_trampoline( const char* file, unsigned int line, const
 	#undef VERIFY
 
 	#if defined( _MSC_VER )
-		#define ASSERT(cond, ...) (void)( ( !(cond) ) && ( assert_call_trampoline( __FILE__, __LINE__, #cond, __VA_ARGS__ ) == ASSERT_ACTION_BREAK ) && ( DBG_TOOLS_BREAKPOINT, 1 ) )
+		#define ASSERT(cond, ...) ( (void)( ( !(cond) ) && ( assert_call_trampoline( __FILE__, __LINE__, #cond, __VA_ARGS__ ) == ASSERT_ACTION_BREAK ) && ( DBG_TOOLS_BREAKPOINT, 1 ) ) )
 		#define VERIFY(cond, ...) ASSERT( cond, __VA_ARGS__ )
 	#elif defined( __GNUC__ )
-		#define ASSERT(cond, args...) (void)( ( !(cond) ) && ( assert_call_trampoline( __FILE__, __LINE__, #cond, ##args ) == ASSERT_ACTION_BREAK ) && ( DBG_TOOLS_BREAKPOINT, 1 ) )
+		#define ASSERT(cond, args...) ( (void)( ( !(cond) ) && ( assert_call_trampoline( __FILE__, __LINE__, #cond, ##args ) == ASSERT_ACTION_BREAK ) && ( DBG_TOOLS_BREAKPOINT, 1 ) ) )
 		#define VERIFY(cond, args...) ASSERT( cond, ##args )
 	#endif
 #else

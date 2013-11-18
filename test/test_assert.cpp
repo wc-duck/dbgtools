@@ -32,5 +32,22 @@ int main( int, char** )
 	// ... assert is also a statement that can be used with the ternary operator ...
 	true ? ASSERT( false, "in ternary op" ) : ASSERT( false, "also in ternary op" );
 
+	// ... assert should not warn for unused variable when not used ...
+	int i_am_used = 1;
+	ASSERT( i_am_used == 1 );
+
+	bool verified = false;
+	VERIFY( verified = true );
+
+	if( !verified )
+		printf("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO1 ( ERROR ERROR ERROR )!\n");
+
+	verified = false;
+	if( true )
+		VERIFY( verified = true );
+
+	if( !verified )
+		printf("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO2 ( ERROR ERROR ERROR )!\n");
+
 	return 0;
 }
