@@ -1,7 +1,7 @@
 --[[
-   Intrusive single/double linked list for C++.
+   dbgtools - platform independent wrapping of "nice to have" debug functions.
 
-   version 0.1, augusti, 2013
+   version 0.1, october, 2013
 
    Copyright (C) 2013- Fredrik Kihlander
 
