@@ -43,7 +43,20 @@
 #define STATIC_ASSERT(cond, msg)
 #undef STATIC_ASSERT
 
-#if defined( __cplusplus ) || defined( _MSC_VER )
+// ... clang ...
+#if defined( __clang__ )
+#  if defined( __cplusplus ) && __has_feature(cxx_static_assert)
+#    define STATIC_ASSERT( cond, msg ) static_assert( cond, msg )
+#  elif __has_feature(c_static_assert)
+#    define STATIC_ASSERT( cond, msg ) _Static_assert( cond, msg )
+#  endif
+
+// ... msvc ...
+#elif defined( _MSC_VER ) && ( defined(_MSC_VER) && (_MSC_VER >= 1600) )
+#    define STATIC_ASSERT( cond, msg ) static_assert( cond, msg )
+
+// ... gcc ...
+#elif defined( __cplusplus )
 #  if __cplusplus >= 201103L || ( defined(_MSC_VER) && (_MSC_VER >= 1600) )
 #    define STATIC_ASSERT( cond, msg ) static_assert( cond, msg )
 #  endif
@@ -78,7 +91,7 @@
 #    if defined( _MSC_VER )
 #      define STATIC_ASSERT( cond, msg ) struct DBGTOOLS_STATIC_ASSERT_MACRO_TOKENS_DO( __LINE__ ) { DBG_TOOLS_STATIC_ASSERT_IMPL<(cond)> a; }
 #    else
-#      define STATIC_ASSERT( cond, msg ) typedef char DBGTOOLS_STATIC_ASSERT_MACRO_TOKENS_DO( __LINE__ )[ (cond) ? 1 : -1 ]
+#      define STATIC_ASSERT( cond, msg ) typedef char DBGTOOLS_STATIC_ASSERT_MACRO_TOKENS_DO( __LINE__ )[ (cond) ? 1 : -1 ] __attribute__ ((unused))
 #    endif
 #  else
 #    if defined( __COUNTER__ )
