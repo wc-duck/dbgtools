@@ -72,13 +72,6 @@
 
 /* if we couldn't detect a builtin static assert, lets define one! */
 #ifndef STATIC_ASSERT
-#  if defined( _MSC_VER )
-#    if __cplusplus
-       template<bool> struct DBG_TOOLS_STATIC_ASSERT_IMPL;
-       template<> struct DBG_TOOLS_STATIC_ASSERT_IMPL<true> {};
-#    endif
-#  endif
-
 #  if defined( __COUNTER__ )
 #    define DBGTOOLS_STATIC_ASSERT_MACRO_TOKENS_DO(line) DBGTOOLS_STATIC_ASSERT_MACRO_TOKENS_DO1(__COUNTER__,line)
 #  else
@@ -87,16 +80,16 @@
 #  define DBGTOOLS_STATIC_ASSERT_MACRO_TOKENS_DO1(count,line) DBGTOOLS_STATIC_ASSERT_MACRO_TOKENS_DO2(count,line)
 #  define DBGTOOLS_STATIC_ASSERT_MACRO_TOKENS_DO2(count,line) static_assert_##count##_at_line_##line
 #
-#  if __cplusplus
-#    if defined( _MSC_VER )
+#  if defined( _MSC_VER )
+#    if defined( __cplusplus )
+       template<bool> struct DBG_TOOLS_STATIC_ASSERT_IMPL;
+       template<> struct DBG_TOOLS_STATIC_ASSERT_IMPL<true> {};
 #      define STATIC_ASSERT( cond, msg ) struct DBGTOOLS_STATIC_ASSERT_MACRO_TOKENS_DO( __LINE__ ) { DBG_TOOLS_STATIC_ASSERT_IMPL<(cond)> a; }
 #    else
-#      define STATIC_ASSERT( cond, msg ) typedef char DBGTOOLS_STATIC_ASSERT_MACRO_TOKENS_DO( __LINE__ )[ (cond) ? 1 : -1 ] __attribute__ ((unused))
-#    endif
-#  else
-#    if defined( __COUNTER__ )
 #      define STATIC_ASSERT( cond, msg ) enum { DBGTOOLS_STATIC_ASSERT_MACRO_TOKENS_DO( __LINE__ ) = 1 / (!!(cond)) }
 #    endif
+#  else
+#    define STATIC_ASSERT( cond, msg ) typedef char DBGTOOLS_STATIC_ASSERT_MACRO_TOKENS_DO( __LINE__ )[ (cond) ? 1 : -1 ] __attribute__ ((unused))
 #  endif
 #endif
 
