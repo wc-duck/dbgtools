@@ -43,7 +43,7 @@
 #define STATIC_ASSERT(cond, msg)
 #undef STATIC_ASSERT
 
-#if defined( __cplusplus )
+#if defined( __cplusplus ) || defined( _MSC_VER )
 #  if __cplusplus >= 201103L || ( defined(_MSC_VER) && (_MSC_VER >= 1600) )
 #    define STATIC_ASSERT( cond, msg ) static_assert( cond, msg )
 #  endif
