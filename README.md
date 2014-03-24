@@ -1,9 +1,10 @@
 # About:
 Platform independent wrapping of "nice to have" debug functions.
 
-* assert.h    - implements a replacement for the standard assert() macro supporting callback at assert, and error-message with printf-format.
-* callstack.h - implements capturing of callstack/backtrace + translation of captured symbols into name, file, line and offset.
-* debugger.h  - implements debugger_present to check if a debugger is attached to the process.
+* assert.h        - implements a replacement for the standard assert() macro supporting callback at assert, and error-message with printf-format.
+* callstack.h     - implements capturing of callstack/backtrace + translation of captured symbols into name, file, line and offset.
+* debugger.h      - implements debugger_present to check if a debugger is attached to the process.
+* static_assert.h - defines the macro STATIC_ASSERT( condition, message_string ) in an "as good as possible way" depending on compiler features and support. It will try to use builtin support for static_assert and _Static_assert if possible.
 
 # Design:
 The files are designed to be able to be used by them self, only header and src should be needed by the user and all files
