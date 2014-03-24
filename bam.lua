@@ -57,6 +57,9 @@ local debugger_obj  = Compile( settings, 'src/debugger.cpp' )
 local callstack_obj = Compile( settings, 'src/callstack.cpp' )
 local assert_obj    = Compile( settings, 'src/assert.cpp' )
 
+Compile( settings, 'test/test_static_assert.c' )
+Compile( settings, 'test/test_static_assert_cpp.cpp' )
+
 Link( settings, 'test_debugger',      debugger_obj,  Compile( settings, 'test/test_debugger_present.c' ) )
 Link( settings, 'test_callstack',     callstack_obj, Compile( settings, 'test/test_callstack.c' ) )
 Link( settings, 'test_callstack_cpp', callstack_obj, Compile( settings, 'test/test_callstack_cpp.cpp' ) )
