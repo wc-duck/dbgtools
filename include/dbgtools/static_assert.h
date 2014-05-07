@@ -2,6 +2,8 @@
 	dbgtools - platform independent wrapping of "nice to have" debug functions.
 
 	version 0.1, october, 2013
+	
+	https://github.com/wc-duck/dbgtools
 
 	Copyright (C) 2013- Fredrik Kihlander
 
