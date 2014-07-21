@@ -56,6 +56,7 @@ settings.cc.includes:Add( 'include' )
 local debugger_obj  = Compile( settings, 'src/debugger.cpp' )
 local callstack_obj = Compile( settings, 'src/callstack.cpp' )
 local assert_obj    = Compile( settings, 'src/assert.cpp' )
+local fpe_ctrl_obj  = Compile( settings, 'src/fpe_ctrl.cpp' )
 
 Compile( settings, 'test/test_static_assert.c' )
 Compile( settings, 'test/test_static_assert_cpp.cpp' )
@@ -64,3 +65,4 @@ Link( settings, 'test_debugger',      debugger_obj,  Compile( settings, 'test/te
 Link( settings, 'test_callstack',     callstack_obj, Compile( settings, 'test/test_callstack.c' ) )
 Link( settings, 'test_callstack_cpp', callstack_obj, Compile( settings, 'test/test_callstack_cpp.cpp' ) )
 Link( settings, 'test_assert',        assert_obj,    Compile( settings, 'test/test_assert.cpp' ) )
+Link( settings, 'test_fpe_ctrl',      fpe_ctrl_obj,  Compile( settings, 'test/test_fpe_ctrl.cpp' ) )
