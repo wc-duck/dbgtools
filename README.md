@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/wc-duck/dbgtools.svg?branch=master)](https://travis-ci.org/wc-duck/dbgtools)
+[![Build status](https://ci.appveyor.com/api/projects/status/ebe2yl78l9pv38rv)](https://ci.appveyor.com/project/wc-duck/dbgtools)
 
 # About:
 Platform independent wrapping of "nice to have" debug functions.
