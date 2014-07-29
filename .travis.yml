@@ -9,4 +9,6 @@ install:
   - ./make_unix.sh
   - cd ..
 
-script: bam/bam compiler=$CC
+script:
+  - bam/bam compiler=$CC config=debug
+  - bam/bam compiler=$CC config=release
