@@ -120,7 +120,6 @@ unsigned int fpe_get_trapped();
 #endif
 
 
-// scopes
 #if defined( __cplusplus )
 
 /**
