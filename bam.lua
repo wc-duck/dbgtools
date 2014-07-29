@@ -51,7 +51,8 @@ function get_base_settings()
 
     settings._is_settingsobject = true
     settings.invoke_count = 0
-
+    settings.debug = 0
+    settings.optimize = 0
     SetCommonSettings(settings)
 
     -- add all tools
@@ -81,8 +82,6 @@ function set_compiler( settings, config )
 	settings.cc.defines:Add("_ITERATOR_DEBUG_LEVEL=0")
         if config == "release" then
 	    settings.cc.flags:Add( "/Ox" )
-        else
-	    settings.cc.flags:Add( "/Od" )
         end
 
     elseif compiler == "gcc" then
