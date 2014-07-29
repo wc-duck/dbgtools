@@ -27,7 +27,7 @@
 BUILD_PATH = "local"
 
 function get_config()
-    local config = ScriptArgs["platform"]
+    local config = ScriptArgs["config"]
     if config == nil then
         return "debug"
     end
@@ -62,7 +62,7 @@ function get_base_settings()
     return settings
 end
 
-function set_compiler( settings )
+function set_compiler( settings, config )
     if family == "windows" then
         compiler = "msvc"
     else
@@ -79,21 +79,33 @@ function set_compiler( settings )
 	settings.link.flags:Add( "/NODEFAULTLIB:LIBCMT.LIB" );
 	settings.link.libs:Add( "Dbghelp" );
 	settings.cc.defines:Add("_ITERATOR_DEBUG_LEVEL=0")
+        if config == "release" then
+	    settings.cc.flags:Add( "/Ox" )
+        else
+	    settings.cc.flags:Add( "/Od" )
+        end
+
     elseif compiler == "gcc" then
         SetDriversGCC( settings )
 	settings.cc.flags:Add( "-Wconversion", "-Wextra", "-Wall", "-Werror", "-Wstrict-aliasing=2" )
 	settings.link.flags:Add( '-rdynamic' )
+        if config == "release" then
+	    settings.cc.flags:Add( "-O2" )
+        end
     elseif compiler == "clang" then
         SetDriversClang( settings )
 	settings.cc.flags:Add( "-Wconversion", "-Wextra", "-Wall", "-Werror", "-Wstrict-aliasing=2" )
 	settings.link.flags:Add( '-rdynamic' )
+        if config == "release" then
+	    settings.cc.flags:Add( "-O2" )
+        end
     end
 end
 
 config   = get_config()
 platform = get_platform()
 settings = get_base_settings()
-set_compiler( settings )
+set_compiler( settings, config )
 TableLock( settings )
 
 local output_path = PathJoin( BUILD_PATH, PathJoin( config, platform ) )
