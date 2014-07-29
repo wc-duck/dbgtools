@@ -1,0 +1,11 @@
+language: cpp
+compiler:
+  - gcc
+  - clang
+
+install:
+  - git clone https://github.com/matricks/bam.git
+  - cd bam
+  - ./make_unix.sh
+
+script: bam/bam
