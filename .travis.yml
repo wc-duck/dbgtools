@@ -9,4 +9,4 @@ install:
   - ./make_unix.sh
   - cd ..
 
-script: bam/bam
+script: bam/bam compiler=$CC

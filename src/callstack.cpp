@@ -95,7 +95,7 @@ int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_a
 	int num_translated = 0;
 	callstack_string_buffer_t outbuf = { memory, memory + mem_size };
 
-	memset( out_syms, 0x0, num_addresses * sizeof(callstack_symbol_t) );
+	memset( out_syms, 0x0, (size_t)num_addresses * sizeof(callstack_symbol_t) );
 
 #if defined( __unix__ )
 	char** syms = backtrace_symbols( addresses, num_addresses );
@@ -103,9 +103,9 @@ int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_a
 	char*  tmp_buffer  = (char*)malloc( tmp_buf_len );
 
 	size_t start = 0;
-	start += snprintf( tmp_buffer, tmp_buf_len, "addr2line -e /proc/%u/exe", getpid() );
+	start += (size_t)snprintf( tmp_buffer, tmp_buf_len, "addr2line -e /proc/%u/exe", getpid() );
 	for( int i = 0; i < num_addresses; ++i )
-		start += snprintf( tmp_buffer + start, tmp_buf_len - start, " %p", addresses[i] );
+		start += (size_t)snprintf( tmp_buffer + start, tmp_buf_len - start, " %p", addresses[i] );
 
 	FILE* addr2line = popen( tmp_buffer, "r" );
 

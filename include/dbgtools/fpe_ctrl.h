@@ -141,15 +141,13 @@ unsigned int fpe_get_trapped();
  */
 class fpe_enable_scope
 {
-	unsigned int except;
 	unsigned int old_except;
 
 	/**
 	 * @param except_flags mask of floating point exceptions to trap in scope.
 	 */
 	fpe_enable_scope( unsigned int except_flags )
-		: except( except_flags )
-		, old_except( fpe_get_trapped() )
+		: old_except( fpe_get_trapped() )
 	{
 		fpe_enable_trap( except_flags );
 	}
@@ -179,7 +177,6 @@ class fpe_enable_scope
  */
 class fpe_disable_scope
 {
-	unsigned int except;
 	unsigned int old_except;
 
 	/**
@@ -187,10 +184,9 @@ class fpe_disable_scope
 	 * @param except_flags mask of floating point exceptions to not trap in scope.
 	 */
 	fpe_disable_scope( unsigned int except_flags )
-		: except( except_flags )
-		, old_except( fpe_get_trapped() )
+		: old_except( fpe_get_trapped() )
 	{
-		fpe_disable_trap( except );
+		fpe_disable_trap( except_flags );
 	}
 
 	~fpe_disable_scope()

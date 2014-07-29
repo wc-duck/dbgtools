@@ -124,30 +124,30 @@ extern "C" {
 
 	int fpe_clear( unsigned int except )
 	{
-		return feclearexcept( except );
+		return feclearexcept( (int)except );
 	}
 
 	int fpe_raise( unsigned int except )
 	{
-		return feraiseexcept( except );
+		return feraiseexcept( (int)except );
 	}
 
 	unsigned int fpe_test( unsigned int except )
 	{
-		return fetestexcept( except );
+		return (unsigned int)fetestexcept( (int)except );
 	}
 
 	int fpe_enable_trap( unsigned int except )
 	{
-		if( feclearexcept( except ) < 0 )
+		if( feclearexcept( (int)except ) < 0 )
 			return -1;
 
-		return feenableexcept( except );
+		return feenableexcept( (int)except );
 	}
 
 	int fpe_disable_trap( unsigned int except )
 	{
-		return fedisableexcept( except );
+		return fedisableexcept( (int)except );
 	}
 
 	int fpe_set_trapped( unsigned int except )

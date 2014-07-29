@@ -74,7 +74,7 @@ int test_get_trapped()
 	GREATEST_ASSERT_EQ( fpe_get_trapped() & fp_exception_overflow,    fp_exception_overflow );
 	GREATEST_ASSERT_EQ( fpe_get_trapped() & fp_exception_underflow,   fp_exception_underflow );
 	GREATEST_ASSERT_EQ( fpe_get_trapped() & fp_exception_inexact,     fp_exception_inexact );
-	GREATEST_ASSERT_EQ( fpe_get_trapped() & ~fp_exception_all,        0 );
+	GREATEST_ASSERT_EQ( fpe_get_trapped() & (unsigned)~fp_exception_all, 0 );
 	fpe_disable_trap( fp_exception_all );
 
 	fpe_enable_trap( fp_exception_invalid );
