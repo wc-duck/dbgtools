@@ -7,8 +7,6 @@ install:
   - cd bam
   - make_win64_msvc.bat
   - cd ..
-
-build_script:
   - bam\bam.exe config=debug
   - bam\bam.exe config=release
 
