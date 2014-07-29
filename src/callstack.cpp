@@ -144,13 +144,15 @@ int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_a
 
 		if( addr2line != 0x0 )
 		{
-			fgets( tmp_buffer, (int)tmp_buf_len, addr2line );
-			char* line_start = strchr( tmp_buffer, ':' );
-			*line_start = '\0';
+			if( fgets( tmp_buffer, (int)tmp_buf_len, addr2line ) != 0x0 )
+			{
+				char* line_start = strchr( tmp_buffer, ':' );
+				*line_start = '\0';
 
-			if( tmp_buffer[0] != '?' && tmp_buffer[1] != '?' )
-				out_syms[i].file = alloc_string( &outbuf, tmp_buffer, strlen( tmp_buffer ) );
-			out_syms[i].line = (unsigned int)strtoll( line_start + 1, 0x0, 10 );
+				if( tmp_buffer[0] != '?' && tmp_buffer[1] != '?' )
+					out_syms[i].file = alloc_string( &outbuf, tmp_buffer, strlen( tmp_buffer ) );
+				out_syms[i].line = (unsigned int)strtoll( line_start + 1, 0x0, 10 );
+			}
 		}
 
 		++num_translated;

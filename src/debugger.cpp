@@ -42,7 +42,10 @@
 		// ... skip the first 5 lines ...
 		char buffer[1024];
 		for( i = 0; i < 5; ++i )
-			fgets( buffer, 1024, f );
+		{
+			if( fgets( buffer, 1024, f ) == 0x0 )
+				return 0;
+		}
 
 		int trace_pid;
 		if( fscanf( f, "TracerPid: %d", &trace_pid ) != 1 )
