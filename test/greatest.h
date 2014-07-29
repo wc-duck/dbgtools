@@ -19,14 +19,11 @@
 
 #define GREATEST_VERSION_MAJOR 0
 #define GREATEST_VERSION_MINOR 9
-#define GREATEST_VERSION_PATCH 1
+#define GREATEST_VERSION_PATCH 3
 
 /* A unit testing system for C, contained in 1 file.
  * It doesn't use dynamic allocation or depend on anything
- * beyond ANSI C89.
- *
- * If C99 is available, then suites can pass arguments to tests for
- * parametric testing. */
+ * beyond ANSI C89. */
 
 
 /*********************************************************************
@@ -189,7 +186,7 @@ void GREATEST_SET_TEARDOWN_CB(greatest_teardown_cb *cb, void *udata);
  **********/
 
 /* Define a suite. */
-#define GREATEST_SUITE(NAME) void NAME()
+#define GREATEST_SUITE(NAME) void NAME(void)
 
 /* Start defining a test function.
  * The arguments are not included, to allow parametric testing. */
@@ -198,8 +195,31 @@ void GREATEST_SET_TEARDOWN_CB(greatest_teardown_cb *cb, void *udata);
 /* Run a suite. */
 #define GREATEST_RUN_SUITE(S_NAME) greatest_run_suite(S_NAME, #S_NAME)
 
-/* Run a test in the current suite.
- * If __VA_ARGS__ (C99) is supported, allow parametric testing. */
+/* Run a test in the current suite. */
+#define GREATEST_RUN_TEST(TEST)                                         \
+    do {                                                                \
+        if (greatest_pre_test(#TEST) == 1) {                            \
+            int res = TEST();                                           \
+            greatest_post_test(#TEST, res);                             \
+        } else if (GREATEST_LIST_ONLY()) {                              \
+            fprintf(GREATEST_STDOUT, "  %s\n", #TEST);                  \
+        }                                                               \
+    } while (0)
+
+/* Run a test in the current suite with one void* argument,
+ * which can be a pointer to a struct with multiple arguments. */
+#define GREATEST_RUN_TEST1(TEST, ENV)                                   \
+    do {                                                                \
+        if (greatest_pre_test(#TEST) == 1) {                            \
+            int res = TEST(ENV);                                        \
+            greatest_post_test(#TEST, res);                             \
+        } else if (GREATEST_LIST_ONLY()) {                              \
+            fprintf(GREATEST_STDOUT, "  %s\n", #TEST);                  \
+        }                                                               \
+    } while (0)
+
+/* If __VA_ARGS__ (C99) is supported, allow parametric testing
+ * without needing to manually manage the argument struct. */
 #if __STDC_VERSION__ >= 19901L
 #define GREATEST_RUN_TESTp(TEST, ...)                                   \
     do {                                                                \
@@ -212,20 +232,12 @@ void GREATEST_SET_TEARDOWN_CB(greatest_teardown_cb *cb, void *udata);
     } while (0)
 #endif
 
-#define GREATEST_RUN_TEST(TEST)                                         \
-    do {                                                                \
-        if (greatest_pre_test(#TEST) == 1) {                            \
-            int res = TEST();                                           \
-            greatest_post_test(#TEST, res);                             \
-        } else if (GREATEST_LIST_ONLY()) {                              \
-            fprintf(GREATEST_STDOUT, "  %s\n", #TEST);                  \
-        }                                                               \
-    } while (0)
 
 /* Check if the test runner is in verbose mode. */
 #define GREATEST_IS_VERBOSE() (greatest_info.flags & GREATEST_FLAG_VERBOSE)
 #define GREATEST_LIST_ONLY() (greatest_info.flags & GREATEST_FLAG_LIST_ONLY)
 #define GREATEST_FIRST_FAIL() (greatest_info.flags & GREATEST_FLAG_FIRST_FAIL)
+#define GREATEST_FAILURE_ABORT() (greatest_info.suite.failed > 0 && GREATEST_FIRST_FAIL())
 
 /* Message-less forms. */
 #define GREATEST_PASS() GREATEST_PASSm(NULL)
@@ -245,7 +257,7 @@ void GREATEST_SET_TEARDOWN_CB(greatest_teardown_cb *cb, void *udata);
         greatest_info.msg = MSG;                                        \
         greatest_info.fail_file = __FILE__;                             \
         greatest_info.fail_line = __LINE__;                             \
-        if (!(COND)) return -1;                                         \
+        if (!(COND)) { return -1; }                                     \
         greatest_info.msg = NULL;                                       \
     } while (0)
 
@@ -254,7 +266,7 @@ void GREATEST_SET_TEARDOWN_CB(greatest_teardown_cb *cb, void *udata);
         greatest_info.msg = MSG;                                        \
         greatest_info.fail_file = __FILE__;                             \
         greatest_info.fail_line = __LINE__;                             \
-        if ((COND)) return -1;                                          \
+        if ((COND)) { return -1; }                                      \
         greatest_info.msg = NULL;                                       \
     } while (0)
 
@@ -263,7 +275,7 @@ void GREATEST_SET_TEARDOWN_CB(greatest_teardown_cb *cb, void *udata);
         greatest_info.msg = MSG;                                        \
         greatest_info.fail_file = __FILE__;                             \
         greatest_info.fail_line = __LINE__;                             \
-        if ((EXP) != (GOT)) return -1;                                  \
+        if ((EXP) != (GOT)) { return -1; }                              \
         greatest_info.msg = NULL;                                       \
     } while (0)
 
@@ -314,16 +326,34 @@ void GREATEST_SET_TEARDOWN_CB(greatest_teardown_cb *cb, void *udata);
 
 #define GREATEST_CLOCK_DIFF(C1, C2)                                     \
     fprintf(GREATEST_STDOUT, " (%lu ticks, %.3f sec)",                  \
-        (long unsigned int) (C2) - (long unsigned int)(C1),                                \
+        (long unsigned int) (C2) - (long unsigned int)(C1),             \
         (double)((C2) - (C1)) / (1.0 * (double)CLOCKS_PER_SEC))         \
 
 /* Include several function definitions in the main test file. */
 #define GREATEST_MAIN_DEFS()                                            \
+                                                                        \
+/* Is FILTER a subset of NAME? */                                       \
+static int greatest_name_match(const char *name,                        \
+    const char *filter) {                                               \
+    size_t offset = 0;                                                  \
+    size_t filter_len = strlen(filter);                                 \
+    while (name[offset] != '\0') {                                      \
+        if (name[offset] == filter[0]) {                                \
+            if (0 == strncmp(&name[offset], filter, filter_len)) {      \
+                return 1;                                               \
+            }                                                           \
+        }                                                               \
+        offset++;                                                       \
+    }                                                                   \
+                                                                        \
+    return 0;                                                           \
+}                                                                       \
+                                                                        \
 int greatest_pre_test(const char *name) {                               \
     if (!GREATEST_LIST_ONLY()                                           \
         && (!GREATEST_FIRST_FAIL() || greatest_info.suite.failed == 0)  \
         && (greatest_info.test_filter == NULL ||                        \
-            0 == strcmp(name, greatest_info.test_filter))) {            \
+            greatest_name_match(name, greatest_info.test_filter))) {    \
         GREATEST_SET_TIME(greatest_info.suite.pre_test);                \
         if (greatest_info.setup) {                                      \
             greatest_info.setup(greatest_info.setup_udata);             \
@@ -364,9 +394,10 @@ void greatest_post_test(const char *name, int res) {                    \
 static void greatest_run_suite(greatest_suite_cb *suite_cb,             \
                                const char *suite_name) {                \
     if (greatest_info.suite_filter &&                                   \
-        0 != strcmp(suite_name, greatest_info.suite_filter))            \
+        !greatest_name_match(suite_name, greatest_info.suite_filter)) { \
         return;                                                         \
-    if (GREATEST_FIRST_FAIL() && greatest_info.failed > 0) return;      \
+    }                                                                   \
+    if (GREATEST_FIRST_FAIL() && greatest_info.failed > 0) { return; }  \
     greatest_info.suite.tests_run = 0;                                  \
     greatest_info.suite.failed = 0;                                     \
     greatest_info.suite.passed = 0;                                     \
@@ -419,10 +450,12 @@ void greatest_do_fail(const char *name) {                               \
             greatest_info.fail_file, greatest_info.fail_line);          \
     } else {                                                            \
         fprintf(GREATEST_STDOUT, "F");                                  \
+        greatest_info.col++;                                            \
         /* add linebreak if in line of '.'s */                          \
-        if (greatest_info.col % greatest_info.width != 0)               \
+        if (greatest_info.col != 0) {                                   \
             fprintf(GREATEST_STDOUT, "\n");                             \
-        greatest_info.col = 0;                                          \
+            greatest_info.col = 0;                                      \
+        }                                                               \
         fprintf(GREATEST_STDOUT, "FAIL %s: %s (%s:%u)\n",               \
             name,                                                       \
             greatest_info.msg ? greatest_info.msg : "",                 \
@@ -466,21 +499,16 @@ void GREATEST_SET_TEARDOWN_CB(greatest_teardown_cb *cb,                 \
     greatest_info.teardown_udata = udata;                               \
 }                                                                       \
                                                                         \
-    greatest_run_info greatest_info = {0, 0,                            \
-                                       0, 0, 0,                         \
-                                       {0, 0, 0, 0,                     \
-                                        0, 0, 0, 0},                    \
-                                       NULL, 0, NULL,                   \
-                                       NULL, NULL,                      \
-                                       NULL, NULL,                      \
-                                       0, GREATEST_DEFAULT_WIDTH,       \
-                                       NULL, NULL,                      \
-                                       0, 0}
+greatest_run_info greatest_info
 
 /* Handle command-line arguments, etc. */
 #define GREATEST_MAIN_BEGIN()                                           \
     do {                                                                \
         int i = 0;                                                      \
+        memset(&greatest_info, 0, sizeof(greatest_info));               \
+        if (greatest_info.width == 0) {                                 \
+            greatest_info.width = GREATEST_DEFAULT_WIDTH;               \
+        }                                                               \
         for (i = 1; i < argc; i++) {                                    \
             if (0 == strcmp("-t", argv[i])) {                           \
                 if (argc <= i + 1) {                                    \
@@ -539,6 +567,7 @@ void GREATEST_SET_TEARDOWN_CB(greatest_teardown_cb *cb,                 \
 #define TEST           GREATEST_TEST
 #define SUITE          GREATEST_SUITE
 #define RUN_TEST       GREATEST_RUN_TEST
+#define RUN_TEST1      GREATEST_RUN_TEST1
 #define RUN_SUITE      GREATEST_RUN_SUITE
 #define ASSERT         GREATEST_ASSERT
 #define ASSERTm        GREATEST_ASSERTm
