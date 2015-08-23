@@ -111,7 +111,7 @@ assert_action assert_call_trampoline( const char* file, unsigned int line, const
 		#define VERIFY(cond, args...) ASSERT( cond, ##args )
 	#endif
 #else
-	void assert_register_callback( assert_callback_t, void* ) {}
+	inline void assert_register_callback( assert_callback_t, void* ) {}
 #endif // DBG_TOOLS_ASSERT_ENABLE
 
 #endif // DBGTOOLS_ASSERT_INCLUDED
