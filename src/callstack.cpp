@@ -28,8 +28,12 @@
 
 #include <dbgtools/callstack.h>
 
+#if defined( __unix__ ) || defined(unix) || defined(__unix) || ( defined(__APPLE__) && defined(__MACH__) )
+#  define DBG_TOOLS_CALLSTACK_UNIX
+#endif
+
 #include <string.h>
-#if defined( __unix__ ) || defined(unix) || defined(__unix)
+#if defined( DBG_TOOLS_CALLSTACK_UNIX )
 	#include <execinfo.h>
 	#include <stdio.h>
 	#include <stdlib.h>
@@ -50,7 +54,7 @@ typedef struct
 	const char* end_ptr;
 } callstack_string_buffer_t;
 
-#if defined( __unix__ ) || defined(unix) || defined(__unix) || defined(_MSC_VER)
+#if defined( DBG_TOOLS_CALLSTACK_UNIX ) || defined(_MSC_VER)
 static const char* alloc_string( callstack_string_buffer_t* buf, const char* str, size_t str_len )
 {
 	char* res;
@@ -69,7 +73,7 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 int callstack( int skip_frames, void** addresses, int num_addresses )
 {
 	++skip_frames;
-#if defined( __unix__ ) || defined(unix) || defined(__unix)
+#if defined( DBG_TOOLS_CALLSTACK_UNIX )
 	void* trace[256];
 	int fetched = backtrace( trace, num_addresses + skip_frames ) - skip_frames;
 	memcpy( addresses, trace + skip_frames, (size_t)fetched * sizeof(void*) );
@@ -99,7 +103,7 @@ int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_a
 
 	memset( out_syms, 0x0, (size_t)num_addresses * sizeof(callstack_symbol_t) );
 
-#if defined( __unix__ ) || defined(unix) || defined(__unix)
+#if defined( DBG_TOOLS_CALLSTACK_UNIX )
 	char** syms = backtrace_symbols( addresses, num_addresses );
 	size_t tmp_buf_len = 1024 * 32;
 	char*  tmp_buffer  = (char*)malloc( tmp_buf_len );
@@ -202,8 +206,13 @@ int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_a
 		++num_translated;
 	}
 #else
+	(void)outbuf;
 	(void)addresses;
 #endif
 
 	return num_translated;
 }
+
+#if defined( DBG_TOOLS_CALLSTACK_UNIX )
+#  undef DBG_TOOLS_CALLSTACK_UNIX
+#endif
