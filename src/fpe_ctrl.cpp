@@ -71,7 +71,7 @@ extern "C" {
 	  old_excepts = (fenv & FM_ALL_EXCEPT) << FE_EXCEPT_SHIFT;
 
 	  fenv &= still_on;
-	  return ( fesetenv (&fenv) ? -1 : old_excepts );
+	  return ( fesetenv (&fenv) ? -1 : (int)old_excepts );
 	}
 
 #  elif DEFINED_INTEL
@@ -94,7 +94,7 @@ extern "C" {
 	  fenv.__control &= ~new_excepts;
 	  fenv.__mxcsr   &= ~(new_excepts << 7);
 
-	  return ( fesetenv (&fenv) ? -1 : old_excepts );
+	  return ( fesetenv (&fenv) ? -1 : (int)old_excepts );
 	}
 
 	static int fedisableexcept( unsigned int excepts )
@@ -110,7 +110,7 @@ extern "C" {
 	  fenv.__control |= new_excepts;
 	  fenv.__mxcsr   |= new_excepts << 7;
 
-	  return ( fesetenv (&fenv) ? -1 : old_excepts );
+	  return ( fesetenv (&fenv) ? -1 : (int)old_excepts );
 	}
 #  endif  // PPC or INTEL enabling
 #endif
