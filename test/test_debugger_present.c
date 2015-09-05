@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 
-#if defined( __unix__ ) || defined(unix) || defined(__unix)
+#if defined( __unix__ ) || defined(unix) || defined(__unix) || ( defined(__APPLE__) && defined(__MACH__) )
 	#include <unistd.h>
 #elif defined( _MSC_VER )
 	#include <Windows.h>
