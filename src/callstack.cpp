@@ -117,7 +117,7 @@ int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_a
 #elif defined(__APPLE__) && defined(__MACH__)
 	char exe_path[4096];
 	uint32_t exe_size = sizeof(exe_path);
-	if( !_NSGetExecutablePath(exe_path, &exe_size) )
+	if( _NSGetExecutablePath(exe_path, &exe_size) == 0 )
 		return 0;
 	start += (size_t)snprintf( tmp_buffer, tmp_buf_len, "atos -o %.256s", exe_path );
 #else
@@ -165,7 +165,6 @@ int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_a
 		{
 			if( fgets( tmp_buffer, (int)tmp_buf_len, addr2line ) != 0x0 )
 			{
-				printf("debug: %s\n", tmp_buffer);
 				char* line_start = strchr( tmp_buffer, ':' );
 				*line_start = '\0';
 
