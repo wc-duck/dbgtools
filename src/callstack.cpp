@@ -114,7 +114,7 @@ int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_a
 	size_t start = 0;
 #if defined(__linux)
 	start += (size_t)snprintf( tmp_buffer, tmp_buf_len, "addr2line -e /proc/%u/exe", getpid() );
-#elif
+#elif defined(__APPLE__) && defined(__MACH__)
 	char exe_path[4096];
 	uint32_t exe_size = sizeof(exe_path);
 	if( !_NSGetExecutablePath(exe_path, &exe_size) )
