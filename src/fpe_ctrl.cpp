@@ -97,7 +97,7 @@ extern "C" {
 	  return ( fesetenv (&fenv) ? -1 : (int)old_excepts );
 	}
 
-	static int fedisableexcept( unsigned int excepts )
+	static int fedisableexcept( int excepts )
 	{
 	  fenv_t fenv;
 	  unsigned int new_excepts = excepts & FE_ALL_EXCEPT,
