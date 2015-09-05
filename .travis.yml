@@ -3,6 +3,8 @@ os:
   - linux
   - osx
 
+sudo: false
+
 compiler:
   - gcc
   - clang
