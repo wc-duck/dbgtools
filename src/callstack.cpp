@@ -165,6 +165,7 @@ int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_a
 		{
 			if( fgets( tmp_buffer, (int)tmp_buf_len, addr2line ) != 0x0 )
 			{
+				printf("debug: %s\n", tmp_buffer);
 				char* line_start = strchr( tmp_buffer, ':' );
 				*line_start = '\0';
 
