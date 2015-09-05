@@ -48,10 +48,10 @@ extern "C" {
 	  return ( fegetenv (&fenv) ? -1 : ( ( fenv & (FM_ALL_EXCEPT) ) << FE_EXCEPT_SHIFT ) );
 	}
 
-	static int feenableexcept( unsigned int excepts )
+	static int feenableexcept( int excepts )
 	{
 	  fenv_t fenv;
-	  unsigned int new_excepts = (excepts & FE_ALL_EXCEPT) >> FE_EXCEPT_SHIFT,
+	  unsigned int new_excepts = ((unsigned int)excepts & FE_ALL_EXCEPT) >> FE_EXCEPT_SHIFT,
 				   old_excepts;  // all previous masks
 
 	  if ( fegetenv (&fenv) ) return -1;
@@ -61,10 +61,10 @@ extern "C" {
 	  return ( fesetenv (&fenv) ? -1 : old_excepts );
 	}
 
-	static int fedisableexcept( unsigned int excepts )
+	static int fedisableexcept( int excepts )
 	{
 	  fenv_t fenv;
-	  unsigned int still_on = ~( (excepts & FE_ALL_EXCEPT) >> FE_EXCEPT_SHIFT ),
+	  unsigned int still_on = ~( ((unsigned int)excepts & FE_ALL_EXCEPT) >> FE_EXCEPT_SHIFT ),
 				   old_excepts;  // previous masks
 
 	  if ( fegetenv (&fenv) ) return -1;
@@ -81,10 +81,10 @@ extern "C" {
 	  return fegetenv (&fenv) ? -1 : (fenv.__control & FE_ALL_EXCEPT);
 	}
 
-	static int feenableexcept( unsigned int excepts )
+	static int feenableexcept( int excepts )
 	{
 	  fenv_t fenv;
-	  unsigned int new_excepts = excepts & FE_ALL_EXCEPT,
+	  unsigned int new_excepts = (unsigned int)excepts & FE_ALL_EXCEPT,
 				   old_excepts;  // previous masks
 
 	  if ( fegetenv (&fenv) ) return -1;

@@ -50,7 +50,8 @@ typedef struct
 	const char* end_ptr;
 } callstack_string_buffer_t;
 
-static inline const char* alloc_string( callstack_string_buffer_t* buf, const char* str, size_t str_len )
+#if defined( __unix__ ) || defined(unix) || defined(__unix) || defined(_MSC_VER)
+static const char* alloc_string( callstack_string_buffer_t* buf, const char* str, size_t str_len )
 {
 	char* res;
 
@@ -63,6 +64,7 @@ static inline const char* alloc_string( callstack_string_buffer_t* buf, const ch
 	res[str_len] = '\0';
 	return res;
 }
+#endif
 
 int callstack( int skip_frames, void** addresses, int num_addresses )
 {
@@ -201,7 +203,6 @@ int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_a
 	}
 #else
 	(void)addresses;
-	(void)outbuf;
 #endif
 
 	return num_translated;
