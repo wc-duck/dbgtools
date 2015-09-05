@@ -5,6 +5,11 @@ os:
 
 sudo: false
 
+env:
+  matrix:
+   - DBGTOOLS_CONFIG=debug
+   - DBGTOOLS_CONFIG=release
+
 compiler:
   - gcc
   - clang
@@ -16,5 +21,8 @@ install:
   - cd ..
 
 script:
-  - bam/bam compiler=$CC config=debug
-  - bam/bam compiler=$CC config=release
+  - bam/bam compiler=$CC config=$DBGTOOLS_CONFIG
+  - local/$DBGTOOLS_CONFIG/linux_x86_64/test_assert
+  - local/$DBGTOOLS_CONFIG/linux_x86_64/test_callstack
+  - local/$DBGTOOLS_CONFIG/linux_x86_64/test_callstack_cpp
+  - local/$DBGTOOLS_CONFIG/linux_x86_64/test_fpe_ctrl
