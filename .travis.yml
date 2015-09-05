@@ -25,4 +25,3 @@ script:
   - local/$DBGTOOLS_CONFIG/linux_x86_64/test_assert
   - local/$DBGTOOLS_CONFIG/linux_x86_64/test_callstack
   - local/$DBGTOOLS_CONFIG/linux_x86_64/test_callstack_cpp
-  - local/$DBGTOOLS_CONFIG/linux_x86_64/test_fpe_ctrl
