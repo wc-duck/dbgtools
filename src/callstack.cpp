@@ -40,6 +40,9 @@
 	#include <unistd.h>
 
 	#include <cxxabi.h>
+	#if defined(__APPLE__) && defined(__MACH__)
+		#include <mach-o/dyld.h>
+	#endif
 
 #elif defined( _MSC_VER )
 	#define WIN32_LEAN_AND_MEAN
@@ -109,7 +112,17 @@ int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_a
 	char*  tmp_buffer  = (char*)malloc( tmp_buf_len );
 
 	size_t start = 0;
+#if defined(__linux)
 	start += (size_t)snprintf( tmp_buffer, tmp_buf_len, "addr2line -e /proc/%u/exe", getpid() );
+#elif
+	char exe_path[4096];
+	uint32_t exe_size = sizeof(exe_path);
+	if( !_NSGetExecutablePath(exe_path, &exe_size) )
+		return 0;
+	start += (size_t)snprintf( tmp_buffer, tmp_buf_len, "atos -o %.256s", exe_path );
+#else
+#  error "Unhandled platform"
+#endif
 	for( int i = 0; i < num_addresses; ++i )
 		start += (size_t)snprintf( tmp_buffer + start, tmp_buf_len - start, " %p", addresses[i] );
 
