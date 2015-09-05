@@ -11,6 +11,4 @@ install:
   - bam\bam.exe config=release
 
 build: OFF
-test: OFF
-test_script: OFF
-deploy: OFF
+
