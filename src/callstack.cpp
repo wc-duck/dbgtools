@@ -92,7 +92,7 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 	#elif defined(__APPLE__) && defined(__MACH__)
 		char exe_path[4096];
 		uint32_t exe_size = sizeof(exe_path);
-		if( _NSGetExecutablePath(exe_path, &exe_size) == 0 )
+		if( _NSGetExecutablePath(exe_path, &exe_size) != 0 )
 			return 0;
 		start += (size_t)snprintf( tmp_buffer, tmp_buf_len, "atos -o %.256s", exe_path );
 	#else
