@@ -29,7 +29,7 @@
 #include <dbgtools/callstack.h>
 
 #include <string.h>
-#if defined( __unix__ )
+#if defined( __unix__ ) || defined(unix) || defined(__unix)
 	#include <execinfo.h>
 	#include <stdio.h>
 	#include <stdlib.h>
@@ -50,7 +50,7 @@ typedef struct
 	const char* end_ptr;
 } callstack_string_buffer_t;
 
-static const char* alloc_string( callstack_string_buffer_t* buf, const char* str, size_t str_len )
+static inline const char* alloc_string( callstack_string_buffer_t* buf, const char* str, size_t str_len )
 {
 	char* res;
 
@@ -67,7 +67,7 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 int callstack( int skip_frames, void** addresses, int num_addresses )
 {
 	++skip_frames;
-#if defined( __unix__ )
+#if defined( __unix__ ) || defined(unix) || defined(__unix)
 	void* trace[256];
 	int fetched = backtrace( trace, num_addresses + skip_frames ) - skip_frames;
 	memcpy( addresses, trace + skip_frames, (size_t)fetched * sizeof(void*) );
@@ -75,7 +75,7 @@ int callstack( int skip_frames, void** addresses, int num_addresses )
 #elif defined( _MSC_VER )
 	return RtlCaptureStackBackTrace( skip_frames, num_addresses, addresses, 0 );
 #else
-	(void)skip_frame; (void)addresses; (void)num_addresses;
+	(void)skip_frames; (void)addresses; (void)num_addresses;
 	return 0;
 #endif
 }
@@ -97,7 +97,7 @@ int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_a
 
 	memset( out_syms, 0x0, (size_t)num_addresses * sizeof(callstack_symbol_t) );
 
-#if defined( __unix__ )
+#if defined( __unix__ ) || defined(unix) || defined(__unix)
 	char** syms = backtrace_symbols( addresses, num_addresses );
 	size_t tmp_buf_len = 1024 * 32;
 	char*  tmp_buffer  = (char*)malloc( tmp_buf_len );
@@ -199,7 +199,9 @@ int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_a
 
 		++num_translated;
 	}
-
+#else
+	(void)addresses;
+	(void)outbuf;
 #endif
 
 	return num_translated;
