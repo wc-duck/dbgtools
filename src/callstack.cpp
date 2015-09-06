@@ -133,15 +133,23 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 				if( fgets( tmp_buffer, (int)tmp_buf_len, addr2line ) != 0x0 )
 				{
 					printf("tmp buffer %s\n", tmp_buffer);
+				#if defined(__linux)
 					char* line_start = strchr( tmp_buffer, ':' );
-					if( line_start )
-					{
-						*line_start = '\0';
+					*line_start = '\0';
 
-						if( tmp_buffer[0] != '?' && tmp_buffer[1] != '?' )
-							out_syms[i].file = alloc_string( &outbuf, tmp_buffer, strlen( tmp_buffer ) );
-						out_syms[i].line = (unsigned int)strtoll( line_start + 1, 0x0, 10 );
-					}
+					if( tmp_buffer[0] != '?' && tmp_buffer[1] != '?' )
+						out_syms[i].file = alloc_string( &outbuf, tmp_buffer, strlen( tmp_buffer ) );
+					out_syms[i].line = (unsigned int)strtoll( line_start + 1, 0x0, 10 );
+				#elif defined(__APPLE__) && defined(__MACH__)
+					char* file_start = strrchr( tmp_buffer, '(');
+					char* line_start = strchr( file_start, ':' );
+					*line_start = '\0';
+
+					out_syms[i].file = alloc_string( &outbuf, file_start, strlen( file_start ) );
+					out_syms[i].line = (unsigned int)strtoll( line_start + 1, 0x0, 10 );
+				#else
+				#  error "Unhandled platform"
+				#endif
 				}
 			}
 
