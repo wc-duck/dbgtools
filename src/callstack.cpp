@@ -61,11 +61,7 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <unistd.h>
-
 	#include <cxxabi.h>
-	#if defined(__APPLE__) && defined(__MACH__)
-		#include <mach-o/dyld.h>
-	#endif
 
 	int callstack( int skip_frames, void** addresses, int num_addresses )
 	{
@@ -90,11 +86,7 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 	#if defined(__linux)
 		start += (size_t)snprintf( tmp_buffer, tmp_buf_len, "addr2line -e /proc/%u/exe", getpid() );
 	#elif defined(__APPLE__) && defined(__MACH__)
-		char exe_path[4096];
-		uint32_t exe_size = sizeof(exe_path);
-		if( _NSGetExecutablePath(exe_path, &exe_size) != 0 )
-			return 0;
-		start += (size_t)snprintf( tmp_buffer, tmp_buf_len, "xcrun atos -o %s", exe_path );
+		start += (size_t)snprintf( tmp_buffer, tmp_buf_len, "xcrun atos -p %u -l", getpid() );
 	#else
 	#  error "Unhandled platform"
 	#endif
