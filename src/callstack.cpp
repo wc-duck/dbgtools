@@ -142,11 +142,14 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 				{
 					printf("tmp buffer %s\n", tmp_buffer);
 					char* line_start = strchr( tmp_buffer, ':' );
-					*line_start = '\0';
+					if( line_start )
+					{
+						*line_start = '\0';
 
-					if( tmp_buffer[0] != '?' && tmp_buffer[1] != '?' )
-						out_syms[i].file = alloc_string( &outbuf, tmp_buffer, strlen( tmp_buffer ) );
-					out_syms[i].line = (unsigned int)strtoll( line_start + 1, 0x0, 10 );
+						if( tmp_buffer[0] != '?' && tmp_buffer[1] != '?' )
+							out_syms[i].file = alloc_string( &outbuf, tmp_buffer, strlen( tmp_buffer ) );
+						out_syms[i].line = (unsigned int)strtoll( line_start + 1, 0x0, 10 );
+					}
 				}
 			}
 
