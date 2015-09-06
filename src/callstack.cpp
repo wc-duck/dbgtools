@@ -72,6 +72,30 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 		return fetched;
 	}
 
+	static FILE* run_addr2line( void** addresses, int num_addresses, char* tmp_buffer, size_t tmp_buf_len )
+	{
+	#if defined(__linux)
+		const char addr2line_run_string[] = "addr2line -e /proc/%u/exe";
+	#elif defined(__APPLE__) && defined(__MACH__)
+		const char addr2line_run_string[] = "xcrun atos -p %u -l";
+	#else
+	#   error "Unhandled platform"
+	#endif
+
+		size_t start = (size_t)snprintf( tmp_buffer, tmp_buf_len, addr2line_run_string, getpid() );
+		for( int i = 0; i < num_addresses; ++i )
+			start += (size_t)snprintf( tmp_buffer + start, tmp_buf_len - start, " %p", addresses[i] );
+
+		return popen( tmp_buffer, "r" );
+	}
+
+	static char* demangle_symbol( char* symbol, char* buffer, size_t buffer_size )
+	{
+		int status;
+		char* demangled_symbol = abi::__cxa_demangle( symbol, buffer, &buffer_size, &status );
+		return status != 0 ? symbol : demangled_symbol;
+	}
+
 	int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_addresses, char* memory, int mem_size )
 	{
 		int num_translated = 0;
@@ -82,45 +106,42 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 		size_t tmp_buf_len = 1024 * 32;
 		char*  tmp_buffer  = (char*)malloc( tmp_buf_len );
 
-		size_t start = 0;
-	#if defined(__linux)
-		start += (size_t)snprintf( tmp_buffer, tmp_buf_len, "addr2line -e /proc/%u/exe", getpid() );
-	#elif defined(__APPLE__) && defined(__MACH__)
-		start += (size_t)snprintf( tmp_buffer, tmp_buf_len, "xcrun atos -p %u -l", getpid() );
-	#else
-	#  error "Unhandled platform"
-	#endif
-		for( int i = 0; i < num_addresses; ++i )
-			start += (size_t)snprintf( tmp_buffer + start, tmp_buf_len - start, " %p", addresses[i] );
-
-		FILE* addr2line = popen( tmp_buffer, "r" );
+		FILE* addr2line = run_addr2line( addresses, num_addresses, tmp_buffer, tmp_buf_len );
 
 		for( int i = 0; i < num_addresses; ++i )
 		{
 			char* symbol = syms[i];
-
 			unsigned int offset = 0;
 
 			// find function name and offset
+		#if defined(__linux)
 			char* name_start   = strchr( symbol, '(' );
-			char* offset_start = name_start   ? strchr( name_start, '+' ) : 0x0;
-			char* offset_end   = offset_start ? strchr( offset_start, ')' ) : 0x0;
+			char* offset_start = name_start ? strchr( name_start, '+' ) : 0x0;
 
-			if( !( name_start == 0x0 || offset_start == 0x0 || offset_end == 0x0 ) )
+			if( name_start && offset_start )
 			{
 				// zero terminate all strings
 				++name_start;
 				*offset_start = '\0'; ++offset_start;
-				*offset_end   = '\0'; ++offset_end;
+			}
+		#elif defined(__APPLE__) && defined(__MACH__)
+			char* name_start   = 0x0;
+			char* offset_start = strrchr( symbol, '+' );
+			if( offset_start )
+			{
+				offset_start[-1] = '\0'; ++offset_start;
+				name_start = strrchr( symbol, ' ' );
+				if( name_start )
+					++name_start;
+			}
+		#else
+		#  error "Unhandled platform"
+		#endif
 
+			if( name_start && offset_start )
+			{
 				offset = (unsigned int)strtoll( offset_start, 0x0, 16 );
-
-				int status;
-				size_t funcname_size = tmp_buf_len;
-				symbol = abi::__cxa_demangle( name_start, tmp_buffer, &funcname_size, &status );
-
-				if( status != 0 )
-					symbol = name_start;
+				symbol = demangle_symbol( name_start, tmp_buffer, tmp_buf_len );
 			}
 
 			out_syms[i].function = alloc_string( &outbuf, symbol, strlen( symbol ) );
@@ -132,7 +153,6 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 			{
 				if( fgets( tmp_buffer, (int)tmp_buf_len, addr2line ) != 0x0 )
 				{
-					printf("tmp buffer %s\n", tmp_buffer);
 				#if defined(__linux)
 					char* line_start = strchr( tmp_buffer, ':' );
 					*line_start = '\0';
@@ -149,10 +169,10 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 						if( line_start )
 						{
 							*line_start = '\0';
+							++line_start;
 
-							printf("%s - %s\n", file_start, line_start);
 							out_syms[i].file = alloc_string( &outbuf, file_start, strlen( file_start ) );
-							out_syms[i].line = (unsigned int)strtoll( line_start + 1, 0x0, 10 );
+							out_syms[i].line = (unsigned int)strtoll( line_start, 0x0, 10 );
 						}
 					}
 				#else
