@@ -142,11 +142,14 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 					out_syms[i].line = (unsigned int)strtoll( line_start + 1, 0x0, 10 );
 				#elif defined(__APPLE__) && defined(__MACH__)
 					char* file_start = strrchr( tmp_buffer, '(');
-					char* line_start = strchr( file_start, ':' );
-					*line_start = '\0';
+					if( file_start )
+					{
+						char* line_start = strchr( file_start, ':' );
+						*line_start = '\0';
 
-					out_syms[i].file = alloc_string( &outbuf, file_start, strlen( file_start ) );
-					out_syms[i].line = (unsigned int)strtoll( line_start + 1, 0x0, 10 );
+						out_syms[i].file = alloc_string( &outbuf, file_start, strlen( file_start ) );
+						out_syms[i].line = (unsigned int)strtoll( line_start + 1, 0x0, 10 );
+					}
 				#else
 				#  error "Unhandled platform"
 				#endif
