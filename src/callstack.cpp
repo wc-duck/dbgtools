@@ -219,7 +219,13 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 		res     = SymInitialize( process, NULL, TRUE ); // TODO: Only initialize once!
 
 		if( res == 0 )
-			return 0;
+		{
+			DWORD err = GetLastError();
+			// ERROR_INVALID_PARAMETER seems to be returned IF symbols for a specific module could not be loaded.
+			// However the lookup will still work for all other symbols so let us ignore this error!
+			if (err != ERROR_INVALID_PARAMETER)
+				return 0;
+		}
 
 		sym_info  = (PSYMBOL_INFO)buffer;
 		sym_info->SizeOfStruct = sizeof(SYMBOL_INFO);
