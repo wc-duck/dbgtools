@@ -45,7 +45,7 @@
 #if defined(__linux)
 #  if !defined(HW_BREAKPOINT_HAS_LINUX_HEADERS)
 #    if defined(__has_include)
-#      if __has_include(linux/hw_breakpoint.h) &&  __has_include(linux/perf_event.h)
+#      if __has_include(<linux/hw_breakpoint.h>) &&  __has_include(<linux/perf_event.h>)
 #        define HW_BREAKPOINT_HAS_LINUX_HEADERS
 #      endif
 #    endif
@@ -224,18 +224,77 @@ extern "C" void hw_breakpoint_clear( int hwbp )
 	SetThreadContext(thread, &cxt);
 }
 
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) && defined(__x86_64__)
+
+#include <mach/mach_types.h>
+
+inline unsigned int hw_breakpoint_setbits(unsigned int dw, int lowBit, int bits, int newValue)
+{
+	int mask = (1 << bits) - 1;
+	return (dw & ~(mask << lowBit)) | (newValue << lowBit);
+}
 
 extern "C" int hw_breakpoint_set( void* address, unsigned int size, enum hw_breakpoint_type type )
 {
-	// I would love to implement this but I have no access to OSX to test it out, pull-requests are welcome!
-	// on x86 it should be implementable by something like this:
-	// http://stackoverflow.com/questions/2604439/how-do-i-write-x86-debug-registers-from-user-space-on-osx
-	return HW_BREAKPOINT_ERROR_NOT_SUPPORTED;
+	switch( size )
+	{
+		case 1: size = 0; break; // 00
+		case 2: size = 1; break; // 01
+		case 4: size = 3; break; // 11
+		case 8: size = 2; break; // 10
+			break;
+		default:
+			return HW_BREAKPOINT_ERROR_INVALID_ARG;
+	}
+
+	thread_t target = get_target_thread();
+	struct x86_debug_state dr;
+	mach_msg_type_number_t dr_count = x86_DEBUG_STATE_COUNT;
+
+	kern_return_t rc = thread_get_state(target, x86_DEBUG_STATE, &dr, &dr_count);
+
+	int reg_index;
+	for( reg_index = 0; reg_index < 4; ++reg_index )
+	{
+		if( ( dr.uds.ds32.__dr7 & ( 1 << (reg_index * 2) ) ) == 0 )
+			break;
+	}
+
+	switch( reg_index )
+	{
+		case 0: dr.uds.ds32.__dr0 = (DWORD) address; break;
+		case 1: dr.uds.ds32.__dr1 = (DWORD) address; break;
+		case 2: dr.uds.ds32.__dr2 = (DWORD) address; break;
+		case 3: dr.uds.ds32.__dr3 = (DWORD) address; break;
+		default:
+			return HW_BREAKPOINT_ERROR_OUT_OF_SLOTS;
+	}
+
+	int when;
+	switch( type )
+	{
+		case HW_BREAKPOINT_WRITE:     when = 1; break; // 01
+		case HW_BREAKPOINT_READ:      when = 2; break; // 10
+		case HW_BREAKPOINT_READWRITE: when = 3; break; // 11
+	}
+
+	dr.uds.ds32.__dr7 = hw_breakpoint_setbits(dr.uds.ds32.__dr7, 16 + (reg_index * 4), 2, when);
+	dr.uds.ds32.__dr7 = hw_breakpoint_setbits(dr.uds.ds32.__dr7, 18 + (reg_index * 4), 2, size);
+	dr.uds.ds32.__dr7 = hw_breakpoint_setbits(dr.uds.ds32.__dr7,       reg_index * 2,  1, 1);
+
+	thread_set_state(target, x86_DEBUG_STATE, &dr, &dr_count);
+	return reg_index;
 }
 
 extern "C" void hw_breakpoint_clear( int hwbp )
 {
+	thread_t target = get_target_thread();
+	struct x86_debug_state dr;
+	mach_msg_type_number_t dr_count = x86_DEBUG_STATE_COUNT;
+
+	kern_return_t rc = thread_get_state(target, x86_DEBUG_STATE, &dr, &dr_count);
+	dr.uds.ds32.__dr7 = hw_breakpoint_setbits(dr.uds.ds32.__dr7, hwbp * 2, 1, 0);
+	thread_set_state(target, x86_DEBUG_STATE, &dr, &dr_count);
 }
 
 
