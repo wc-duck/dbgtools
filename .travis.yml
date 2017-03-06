@@ -3,17 +3,12 @@ os:
   - linux
   - osx
 
-sudo: true
+sudo: false
 
 env:
   matrix:
    - DBGTOOLS_CONFIG=debug
    - DBGTOOLS_CONFIG=release
-
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install linux-libc-dev; fi
-  - ls /usr/include/linux/
 
 compiler:
   - gcc
