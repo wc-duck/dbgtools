@@ -9,6 +9,7 @@ Platform independent wrapping of "nice to have" debug functions.
 * debugger.h      - implements debugger_present to check if a debugger is attached to the process.
 * static_assert.h - defines the macro STATIC_ASSERT( condition, message_string ) in an "as good as possible way" depending on compiler features and support. It will try to use builtin support for static_assert and _Static_assert if possible.
 * fpe_ctrl.h      - implements platform independent functions to get/set floating point exception and enable trapping of the same exceptions.
+* hw_breakpoint.h - implements platform independent hardware breakpoints.
 
 # Design:
 The files are designed to be able to be used by them self, only header and src should be needed by the user and all files
