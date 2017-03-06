@@ -43,16 +43,16 @@
  * headers and "hope" for the best.
  */
 #if defined(__linux)
-#  if !defined(HW_BREAKPOINT_HAS_LINUX_HEADERS)
+#  if !defined(DBG_TOOLS_HW_BREAKPOINT_HAS_LINUX_HEADERS)
 #    if defined(__has_include)
 #      if __has_include(<linux/hw_breakpoint.h>) &&  __has_include(<linux/perf_event.h>)
-#        define HW_BREAKPOINT_HAS_LINUX_HEADERS
+#        define DBG_TOOLS_HW_BREAKPOINT_HAS_LINUX_HEADERS
 #      endif
 #    endif
 #  endif
 #endif
 
-#if defined(HW_BREAKPOINT_HAS_LINUX_HEADERS)
+#if defined(DBG_TOOLS_HW_BREAKPOINT_HAS_LINUX_HEADERS)
 
 #include <fcntl.h>
 #include <string.h>
