@@ -3,12 +3,16 @@ os:
   - linux
   - osx
 
-sudo: false
+sudo: true
 
 env:
   matrix:
    - DBGTOOLS_CONFIG=debug
    - DBGTOOLS_CONFIG=release
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; sudo apt-get update -qq
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; sudo apt-get install linux-headers-$(uname -r)
 
 compiler:
   - gcc

@@ -34,7 +34,25 @@
 
 #include <dbgtools/hw_breakpoint.h>
 
+/**
+ * Currently the linux implementation depend on having linux-headers installed.
+ * If you are on a compiler that do not support __has_include() but still have
+ * linux-headers installed this can be manually defined.
+ *
+ * In the future I might add a fallback that just defines the used symbols from these
+ * headers and "hope" for the best.
+ */
 #if defined(__linux)
+#  if !defined(HW_BREAKPOINT_HAS_LINUX_HEADERS)
+#    if defined(__has_include)
+#      if __has_include(linux/hw_breakpoint.h) &&  __has_include(linux/perf_event.h)
+#        define HW_BREAKPOINT_HAS_LINUX_HEADERS
+#      endif
+#    endif
+#  endif
+#endif
+
+#if defined(HW_BREAKPOINT_HAS_LINUX_HEADERS)
 
 #include <fcntl.h>
 #include <string.h>
@@ -223,12 +241,12 @@ extern "C" void hw_breakpoint_clear( int hwbp )
 
 #else
 
-extern "C" int hw_breakpoint_set( void* address, unsigned int size, enum hw_breakpoint_type type )
+extern "C" int hw_breakpoint_set( void*, unsigned int, enum hw_breakpoint_type )
 {
 	return HW_BREAKPOINT_ERROR_NOT_SUPPORTED;
 }
 
-extern "C" void hw_breakpoint_clear( int hwbp )
+extern "C" void hw_breakpoint_clear( int )
 {
 }
 

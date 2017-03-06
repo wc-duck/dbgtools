@@ -87,6 +87,7 @@ function set_compiler( settings, config )
     elseif compiler == "gcc" then
         SetDriversGCC( settings )
 	settings.cc.flags:Add( "-Wconversion", "-Wextra", "-Wall", "-Werror", "-Wstrict-aliasing=2" )
+	settings.cc.defines:Add("HW_BREAKPOINT_HAS_LINUX_HEADERS")
 	settings.link.flags:Add( '-rdynamic' )
         if config == "release" then
 	    settings.cc.flags:Add( "-O2" )
