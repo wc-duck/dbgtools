@@ -11,8 +11,8 @@ env:
    - DBGTOOLS_CONFIG=release
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; sudo apt-get update -qq
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; sudo apt-get install linux-headers-$(uname -r)
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install linux-headers-$(uname -r); fi
 
 compiler:
   - gcc
