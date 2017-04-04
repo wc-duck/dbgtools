@@ -224,9 +224,10 @@ extern "C" void hw_breakpoint_clear( int hwbp )
 	SetThreadContext(thread, &cxt);
 }
 
-#elif defined(__APPLE__) && defined(__x86_64__)
+#elif defined(__APPLE__) && defined(__x86_64__) && 0 // disabled until I get hold of an OSX-machine to test on.
 
 #include <mach/mach_types.h>
+#include <mach/thread_status.h>
 
 inline unsigned int hw_breakpoint_setbits(unsigned int dw, int lowBit, int bits, int newValue)
 {
