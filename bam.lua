@@ -78,7 +78,6 @@ function set_compiler( settings, config )
         SetDriversCL( settings )
 
 	settings.link.flags:Add( "/NODEFAULTLIB:LIBCMT.LIB" );
-	settings.link.libs:Add( "Dbghelp" );
 	settings.cc.defines:Add("_ITERATOR_DEBUG_LEVEL=0")
         if config == "release" then
 	    settings.cc.flags:Add( "/Ox" )

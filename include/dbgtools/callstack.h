@@ -58,6 +58,22 @@ int callstack( int skip_frames, void** addresses, int num_addresses );
  * @param memory memory used to allocate strings stored in out_syms.
  * @param mem_size size of addresses.
  * @return number of addresses translated.
+ *
+ * @note On windows this will load dbghelp.dll dynamically from the following paths:
+ *       1) same path as the current module (.exe)
+ *       2) current working directory.
+ *       3) the usual search-paths ( PATH etc ).
+ *
+ *       Some thing to be wary of is that if you are using symbol-server functionality symsrv.dll MUST reside together with
+ *       the dbghelp.dll that is loaded as dbghelp.dll will only load that from the same path as where it self lives.
+ *
+ * @note On windows .pdb search paths will be set in the same way as dbghelp-defaults + the current module (.exe) dir, i.e.:
+ *       1) same path as the current module (.exe)
+ *       2) current working directory.
+ *       3) The _NT_SYMBOL_PATH environment variable.
+ *       4) The _NT_ALTERNATE_SYMBOL_PATH environment variable.
+ *
+ * @note On platforms that support it debug-output can be enabled by defining the environment variable DBGTOOLS_SYMBOL_DEBUG_OUTPUT.
  */
 int callstack_symbols( void** addresses, callstack_symbol_t* out_syms, int num_addresses, char* memory, int mem_size );
 
