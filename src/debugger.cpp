@@ -31,25 +31,27 @@
 #if defined( __linux )
 
 	#include <stdio.h>
+	#include <string.h>
+	#include <stdlib.h>
 
 	int debugger_present()
 	{
-		int i;
 		FILE* f = fopen( "/proc/self/status", "r" );
 		if( f == 0x0 )
 			return 0;
 
-		// ... skip the first 5 lines ...
+		int trace_pid = 0;
+
 		char buffer[1024];
-		for( i = 0; i < 5; ++i )
+		while(fgets(buffer, 1024, f) != 0x0)
 		{
-			if( fgets( buffer, 1024, f ) == 0x0 )
-				return 0;
+			if (strncmp(buffer, "TracerPid:", 10) == 0)
+			{
+				trace_pid = atoi(buffer + 10);
+				break;
+			}
 		}
 
-		int trace_pid;
-		if( fscanf( f, "TracerPid: %d", &trace_pid ) != 1 )
-			trace_pid = 0;
 		fclose( f );
 
 		return trace_pid != 0;
