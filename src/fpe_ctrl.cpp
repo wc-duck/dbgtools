@@ -34,10 +34,7 @@ extern "C" {
 // These implementations of fegetexcept, feenableexcept and fedisableexcept is lifted from:
 // http://www-personal.umich.edu/~williams/archive/computation/fe-handling-example.c
 
-#define DEFINED_PPC      (defined(__ppc__) || defined(__ppc64__))
-#define DEFINED_INTEL    (defined(__i386__) || defined(__x86_64__))
-
-#  if DEFINED_PPC
+#  if defined(__ppc__) || defined(__ppc64__)
 
 #  define FE_EXCEPT_SHIFT 22  // shift flags right to get masks
 #  define FM_ALL_EXCEPT   FE_ALL_EXCEPT >> FE_EXCEPT_SHIFT
@@ -74,7 +71,7 @@ extern "C" {
 	  return ( fesetenv (&fenv) ? -1 : (int)old_excepts );
 	}
 
-#  elif DEFINED_INTEL
+#  elif defined(__i386__) || defined(__x86_64__)
 	static int fegetexcept()
 	{
 	  fenv_t fenv;
