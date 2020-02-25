@@ -1,14 +1,25 @@
 platform:
   - x86
 
+environment:
+  matrix:
+    - DBGTOOLS_PLATFORM: win32
+      DBGTOOLS_CONFIG: debug
+    - DBGTOOLS_PLATFORM: win32
+      DBGTOOLS_CONFIG: release
+    - DBGTOOLS_PLATFORM: winx64
+      DBGTOOLS_CONFIG: debug
+    - DBGTOOLS_PLATFORM: winx64
+      DBGTOOLS_CONFIG: release
+
 install:
-  - c:\"Program Files (x86)"\"Microsoft Visual Studio 12.0"\VC\vcvarsall.bat
+  - if [%DBGTOOLS_PLATFORM%]==[win32] call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+  - if [%DBGTOOLS_PLATFORM%]==[winx64] call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
+  - if [%DBGTOOLS_PLATFORM%]==[winx64] call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
   - git clone https://github.com/matricks/bam.git
   - cd bam
   - make_win64_msvc.bat
   - cd ..
-  - bam\bam.exe config=debug
-  - bam\bam.exe config=release
+  - bam\bam.exe config=%DBGTOOLS_CONFIG%
 
 build: OFF
-
