@@ -194,6 +194,7 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 	// when compiling with clang on windows, silence warnings from windows-code
 #    pragma clang diagnostic push
 #    pragma clang diagnostic ignored "-Wunknown-pragmas"
+#    pragma clang diagnostic ignored "-Wignored-pragma-intrinsic"
 #  endif
 #  include <Windows.h>
 #  if defined(__clang__)
@@ -235,7 +236,7 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 			char* slash = strrchr(module_path, '\\');
 			if (slash)
 				*(slash + 1) = '\0';
-			strncat(module_path, "dbghelp.dll", sizeof(module_path)-1);
+			strncat(module_path, "dbghelp.dll", sizeof(module_path) - strlen(module_path) - 1);
 
 			mod = LoadLibrary(module_path);
 			if (mod)
@@ -246,7 +247,7 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 		module_path_len = GetCurrentDirectory( sizeof(module_path), module_path );
 		if (module_path_len > 0)
 		{
-			strncat(module_path, "\\dbghelp.dll", sizeof(module_path) - 1);
+			strncat(module_path, "\\dbghelp.dll", sizeof(module_path) - strlen(module_path) - 1);
 
 			mod = LoadLibrary(module_path);
 			if (mod)
