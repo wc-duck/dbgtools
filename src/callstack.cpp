@@ -60,8 +60,97 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 	#include <execinfo.h>
 	#include <stdio.h>
 	#include <stdlib.h>
+	#include <string.h>
 	#include <unistd.h>
 	#include <cxxabi.h>
+
+	typedef struct mmap_entry_t {
+		struct mmap_entry_t *next;
+
+		unsigned long range_start;
+		unsigned long range_end;
+		char *perms;
+		unsigned long file_offset;
+		char *dev;
+		char *inode;
+		// can be null if there is no path specified
+		char *path;
+	} mmap_entry_t;
+
+	static mmap_entry_t *parse_mmaps(const char *maps_file){
+		FILE* maps = fopen(maps_file, "r");
+		if(!maps){
+			perror("fopen");
+			fprintf(stderr, "failed to open %s\n", maps_file);
+			return NULL;
+		}
+
+		mmap_entry_t *first = NULL;
+		mmap_entry_t *cur = NULL;
+
+		while(!feof(maps)){
+			char buf[4096];
+			char *ret = fgets(buf, 4096, maps);
+			if(!ret)
+				break;
+
+			mmap_entry_t *next = (mmap_entry_t*) malloc(sizeof(mmap_entry_t));
+			next->next = NULL;
+
+			// from man `proc`:
+			// address perms offset dev inode pathname
+			sscanf(buf, "%lx-%lx %ms %lx %ms %ms %ms\n",
+				&next->range_start,
+				&next->range_end,
+				&next->perms,
+				&next->file_offset,
+				&next->dev,
+				&next->inode,
+				&next->path
+			);
+
+			if(!first){
+				first = next;
+				cur   = next;
+			} else {
+				cur->next = next;
+				cur       = next;
+			}
+		}
+
+		fclose(maps);
+
+		return first;
+	}
+
+	static void mmap_free(mmap_entry_t *mmap){
+		if(!mmap)
+			return;
+
+		while(mmap){
+			if(mmap->perms) free(mmap->perms);
+			if(mmap->dev)   free(mmap->dev);
+			if(mmap->inode) free(mmap->inode);
+			if(mmap->path)  free(mmap->path);
+
+			mmap_entry_t *tmp = mmap->next;
+			free(mmap);
+			mmap = tmp;
+		}
+	}
+
+	static void *mmap_translate(mmap_entry_t *mmap, void *addr){
+		if(!mmap)
+			return addr;
+
+		for(; mmap != nullptr; mmap = mmap->next){
+			unsigned long addr_i = (unsigned long)addr;
+			if(addr_i >= mmap->range_start && addr_i <= mmap->range_end)
+				return (void*) (addr_i - mmap->range_start + mmap->file_offset);
+		}
+
+		return addr;
+	}
 
 	int callstack( int skip_frames, void** addresses, int num_addresses )
 	{
@@ -82,9 +171,21 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 	#   error "Unhandled platform"
 	#endif
 
+	#if defined(__linux)
+		mmap_entry_t *list = parse_mmaps("/proc/self/maps");
+	#else
+		mmap_entry_t *list = nullptr;
+	#endif
+
 		size_t start = (size_t)snprintf( tmp_buffer, tmp_buf_len, addr2line_run_string, getpid() );
-		for( int i = 0; i < num_addresses; ++i )
-			start += (size_t)snprintf( tmp_buffer + start, tmp_buf_len - start, " %p", addresses[i] );
+		for( int i = 0; i < num_addresses; ++i ){
+			// Translate addresses out of potentially ASLR'd VMA space
+			void *addr = mmap_translate(list, addresses[i]);
+
+			start += (size_t)snprintf( tmp_buffer + start, tmp_buf_len - start, " %p", addr );
+		}
+
+		mmap_free(list);
 
 		return popen( tmp_buffer, "r" );
 	}
