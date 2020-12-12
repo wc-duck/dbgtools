@@ -69,12 +69,7 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 
 		unsigned long range_start;
 		unsigned long range_end;
-		char *perms;
 		unsigned long file_offset;
-		char *dev;
-		char *inode;
-		// can be null if there is no path specified
-		char *path;
 	} mmap_entry_t;
 
 	static mmap_entry_t *parse_mmaps(const char *maps_file){
@@ -99,14 +94,10 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 
 			// from man `proc`:
 			// address perms offset dev inode pathname
-			sscanf(buf, "%lx-%lx %ms %lx %ms %ms %ms\n",
+			sscanf(buf, "%lx-%lx %*s %lx",
 				&next->range_start,
 				&next->range_end,
-				&next->perms,
-				&next->file_offset,
-				&next->dev,
-				&next->inode,
-				&next->path
+				&next->file_offset
 			);
 
 			if(!first){
@@ -128,11 +119,6 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 			return;
 
 		while(mmap){
-			if(mmap->perms) free(mmap->perms);
-			if(mmap->dev)   free(mmap->dev);
-			if(mmap->inode) free(mmap->inode);
-			if(mmap->path)  free(mmap->path);
-
 			mmap_entry_t *tmp = mmap->next;
 			free(mmap);
 			mmap = tmp;
