@@ -64,6 +64,16 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 	#include <unistd.h>
 	#include <cxxabi.h>
 
+	int callstack( int skip_frames, void** addresses, int num_addresses )
+	{
+		++skip_frames;
+		void* trace[256];
+		int fetched = backtrace( trace, num_addresses + skip_frames ) - skip_frames;
+		memcpy( addresses, trace + skip_frames, (size_t)fetched * sizeof(void*) );
+		return fetched;
+	}
+
+#if defined(__linux)
 	typedef struct mmap_entry_t {
 		struct mmap_entry_t *next;
 
@@ -72,8 +82,8 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 		unsigned long file_offset;
 	} mmap_entry_t;
 
-#if defined(__linux)
-	static mmap_entry_t *parse_mmaps(const char *maps_file){
+	static mmap_entry_t *parse_mmaps(const char *maps_file)
+	{
 		FILE* maps = fopen(maps_file, "r");
 		if(!maps){
 			perror("fopen");
@@ -114,12 +124,9 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 
 		return first;
 	}
-#endif
 
-	static void mmap_free(mmap_entry_t *mmap){
-		if(!mmap)
-			return;
-
+	static void mmap_free(mmap_entry_t *mmap)
+	{
 		while(mmap){
 			mmap_entry_t *tmp = mmap->next;
 			free(mmap);
@@ -127,10 +134,8 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 		}
 	}
 
-	static void *mmap_translate(mmap_entry_t *mmap, void *addr){
-		if(!mmap)
-			return addr;
-
+	static void *mmap_translate(mmap_entry_t *mmap, void *addr)
+	{
 		for(; mmap != NULL; mmap = mmap->next){
 			unsigned long addr_i = (unsigned long)addr;
 			if(addr_i >= mmap->range_start && addr_i <= mmap->range_end)
@@ -140,32 +145,11 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 		return addr;
 	}
 
-	int callstack( int skip_frames, void** addresses, int num_addresses )
-	{
-		++skip_frames;
-		void* trace[256];
-		int fetched = backtrace( trace, num_addresses + skip_frames ) - skip_frames;
-		memcpy( addresses, trace + skip_frames, (size_t)fetched * sizeof(void*) );
-		return fetched;
-	}
-
 	static FILE* run_addr2line( void** addresses, int num_addresses, char* tmp_buffer, size_t tmp_buf_len )
 	{
-	#if defined(__linux)
-		const char addr2line_run_string[] = "addr2line -e /proc/%u/exe";
-	#elif defined(__APPLE__) && defined(__MACH__)
-		const char addr2line_run_string[] = "xcrun atos -p %u -l";
-	#else
-	#   error "Unhandled platform"
-	#endif
-
-	#if defined(__linux)
 		mmap_entry_t *list = parse_mmaps("/proc/self/maps");
-	#else
-		mmap_entry_t *list = nullptr;
-	#endif
 
-		size_t start = (size_t)snprintf( tmp_buffer, tmp_buf_len, addr2line_run_string, getpid() );
+		size_t start = (size_t)snprintf( tmp_buffer, tmp_buf_len, "addr2line -e /proc/%u/exe", getpid() );
 		for( int i = 0; i < num_addresses; ++i ){
 			// Translate addresses out of potentially ASLR'd VMA space
 			void *addr = mmap_translate(list, addresses[i]);
@@ -177,6 +161,19 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 
 		return popen( tmp_buffer, "r" );
 	}
+#elif defined(__APPLE__) && defined(__MACH__)
+	static FILE* run_addr2line( void** addresses, int num_addresses, char* tmp_buffer, size_t tmp_buf_len )
+	{
+		size_t start = (size_t)snprintf( tmp_buffer, tmp_buf_len, "xcrun atos -p %u -l", getpid() );
+		for( int i = 0; i < num_addresses; ++i )
+			start += (size_t)snprintf( tmp_buffer + start, tmp_buf_len - start, " %p", addresses[i] );
+
+		return popen( tmp_buffer, "r" );
+	}
+#else
+#   error "Unhandled platform"
+#endif
+
 
 	static char* demangle_symbol( char* symbol, char* buffer, size_t buffer_size )
 	{
