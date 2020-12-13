@@ -72,6 +72,7 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 		unsigned long file_offset;
 	} mmap_entry_t;
 
+#if defined(__linux)
 	static mmap_entry_t *parse_mmaps(const char *maps_file){
 		FILE* maps = fopen(maps_file, "r");
 		if(!maps){
@@ -113,6 +114,7 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 
 		return first;
 	}
+#endif
 
 	static void mmap_free(mmap_entry_t *mmap){
 		if(!mmap)
