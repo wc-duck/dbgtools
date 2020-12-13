@@ -129,7 +129,7 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 		if(!mmap)
 			return addr;
 
-		for(; mmap != nullptr; mmap = mmap->next){
+		for(; mmap != NULL; mmap = mmap->next){
 			unsigned long addr_i = (unsigned long)addr;
 			if(addr_i >= mmap->range_start && addr_i <= mmap->range_end)
 				return (void*) (addr_i - mmap->range_start + mmap->file_offset);
