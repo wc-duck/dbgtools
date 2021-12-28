@@ -74,6 +74,43 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 	}
 
 #if defined(__linux)
+	#include <stdint.h>
+
+	static uint16_t read_elf_type_from_self()
+	{
+		uint16_t type = 0;
+
+		// lets check our own elf-type, first open our own exe!
+		FILE* f = fopen("/proc/self/exe", "r");
+		if(f)
+		{
+			// we only need header-data at the start of the exe.
+			// more to the point, 2 bytes at offset 0x10 that is
+			// the elf-type.
+			// https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header
+			char elf_header[0x10 + 1] {0};
+			size_t read = fread(elf_header, sizeof(elf_header), 1, f);
+			fclose(f);
+
+			if(read == 1)
+				memcpy(&type, elf_header + 0x10, sizeof(type));
+		}
+
+		return type;
+	}
+
+	// detect if the current running exe is compiled as PIE.
+	// https://en.wikipedia.org/wiki/Position-independent_code
+	// if it does we need to translate all addresses that we are going to
+	// lookup with the help of the address-maps in /proc/self/maps, if not
+	// we should not do that.
+	static int is_using_pie()
+	{
+		// elf-type for shared object/PIE-executable
+		const uint16_t ET_DYN = 0x03;
+		return read_elf_type_from_self() == ET_DYN;
+	}
+
 	typedef struct mmap_entry_t {
 		struct mmap_entry_t *next;
 
@@ -147,7 +184,9 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 
 	static FILE* run_addr2line( void** addresses, int num_addresses, char* tmp_buffer, size_t tmp_buf_len )
 	{
-		mmap_entry_t *list = parse_mmaps("/proc/self/maps");
+		mmap_entry_t* list = is_using_pie() 
+								? parse_mmaps("/proc/self/maps")
+								: 0x0;
 
 		size_t start = (size_t)snprintf( tmp_buffer, tmp_buf_len, "addr2line -e /proc/%u/exe", getpid() );
 		for( int i = 0; i < num_addresses; ++i ){
