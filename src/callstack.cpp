@@ -46,7 +46,7 @@ static const char* alloc_string( callstack_string_buffer_t* buf, const char* str
 	char* res;
 
 	if( (size_t)(buf->end_ptr - buf->out_ptr) < str_len + 1 )
-		return "out of memory";
+		return "<callstack buffer out of space!>";
 
 	res = buf->out_ptr;
 	buf->out_ptr += str_len + 1;
